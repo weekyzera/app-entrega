@@ -2,29 +2,63 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
+    <title>Teste Oficial do Mapa</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste do Restaurante</title>
+    
+    <!-- Scripts do Mapbox -->
+    <script src="https://mapbox.com"></script>
+    <link href="https://mapbox.com" rel="stylesheet" />
+    
     <style>
-        body { 
-            margin: 0; 
-            padding: 0; 
-            font-family: sans-serif; 
-            background-color: #ff0000; 
-            color: white; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh; 
-        }
-        h1 { margin-bottom: 10px; }
-        p { font-size: 1.2rem; }
+        body { margin: 0; padding: 0; font-family: sans-serif; background-color: #222; color: white; text-align: center; }
+        #status { padding: 15px; background-color: #333; font-weight: bold; border-bottom: 2px solid red; }
+        #map { position: absolute; top: 50px; bottom: 0; width: 100%; background-color: #555; }
     </style>
 </head>
 <body>
 
-    <h1>Delivery On-line</h1>
-    <p>Se você está vendo esta tela vermelha, a Vercel está funcionando 100%!</p>
+    <div id="status">Carregando o sistema de mapas...</div>
+    <div id="map"></div>
+
+<script>
+    // Coloque seu token público (começa com pk.) aqui dentro das aspas
+    const MEU_TOKEN = 'COLE_SEU_TOKEN_REAL_AQUI';
+
+    document.getElementById('status').innerText = "Validando Token do Mapbox...";
+
+    if (MEU_TOKEN === 'COLE_SEU_TOKEN_REAL_AQUI' || MEU_TOKEN.trim() === '') {
+        document.getElementById('status').innerText = "ERRO: Você esqueceu de colar o seu Token na linha 21 do código!";
+        document.getElementById('status').style.backgroundColor = "purple";
+    } else {
+        try {
+            mapboxgl.accessToken = MEU_TOKEN;
+            
+            const map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/streets-v12',
+                center: [-46.6333, -23.5505], // São Paulo
+                zoom: 11
+            });
+
+            // Se o mapa carregar com sucesso, atualiza o topo
+            map.on('load', () => {
+                document.getElementById('status').innerText = "MAPA CARREGADO COM SUCESSO!";
+                document.getElementById('status').style.backgroundColor = "green";
+            });
+
+            // Se o Mapbox rejeitar o token por erro de digitação
+            map.on('error', (e) => {
+                document.getElementById('status').innerText = "ERRO DO MAPBOX: Seu token é inválido ou foi copiado errado.";
+                document.getElementById('status').style.backgroundColor = "orange";
+                console.error(e);
+            });
+
+        } catch (error) {
+            document.getElementById('status').innerText = "ERRO CRÍTICO no código do mapa.";
+            document.getElementById('status').style.backgroundColor = "darkred";
+        }
+    }
+</script>
 
 </body>
 </html>
