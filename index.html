@@ -22,11 +22,11 @@
 
 <script>
     // Coloque seu token público (começa com pk.) aqui dentro das aspas
-    const MEU_TOKEN = 'COLE_SEU_TOKEN_REAL_AQUI';
+    const MEU_TOKEN = 'pk.eyJ1Ijoiam9hb3ppbm5uMDIxNyIsImEiOiJjbXJ2MHNsaTIwMmxkMnpvcGF2bHU1cDZhIn0.Nwl43ZxMQImiv9eA5aCwDw';
 
     document.getElementById('status').innerText = "Validando Token do Mapbox...";
 
-    if (MEU_TOKEN === 'COLE_SEU_TOKEN_REAL_AQUI' || MEU_TOKEN.trim() === '') {
+    if (MEU_TOKEN === 'pk.eyJ1Ijoiam9hb3ppbm5uMDIxNyIsImEiOiJjbXJ2MHNsaTIwMmxkMnpvcGF2bHU1cDZhIn0.Nwl43ZxMQImiv9eA5aCwDw' || MEU_TOKEN.trim() === '') {
         document.getElementById('status').innerText = "ERRO: Você esqueceu de colar o seu Token na linha 21 do código!";
         document.getElementById('status').style.backgroundColor = "purple";
     } else {
