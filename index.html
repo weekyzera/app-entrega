@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
-    <title>Teste Oficial do Maa</title>
+    <title>Teste Oficial do Mapa</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Scripts do Mapbox -->
@@ -21,13 +21,13 @@
     <div id="map"></div>
 
 <script>
-    // Coloque seu token público (começa com pk.) aqui dentro das aspas
+    // MAS COLOQUE SEU TOKEN APENAS AQUI DENTRO DAS ASPAS:
     const MEU_TOKEN = 'pk.eyJ1Ijoiam9hb3ppbm5uMDIxNyIsImEiOiJjbXJ2MHNsaTIwMmxkMnpvcGF2bHU1cDZhIn0.Nwl43ZxMQImiv9eA5aCwDw';
 
     document.getElementById('status').innerText = "Validando Token do Mapbox...";
 
-    if (MEU_TOKEN === 'pk.eyJ1Ijoiam9hb3ppbm5uMDIxNyIsImEiOiJjbXJ2MHNsaTIwMmxkMnpvcGF2bHU1cDZhIn0.Nwl43ZxMQImiv9eA5aCwDw' || MEU_TOKEN.trim() === '') {
-        document.getElementById('status').innerText = "ERRO: Você esqueceu de colar o seu Token na linha 21 do código!";
+    if (MEU_TOKEN === 'COLE_SEU_TOKEN_REAL_AQUI' || MEU_TOKEN.trim() === '') {
+        document.getElementById('status').innerText = "ERRO: Você esqueceu de colocar o seu Token!";
         document.getElementById('status').style.backgroundColor = "purple";
     } else {
         try {
@@ -36,25 +36,22 @@
             const map = new mapboxgl.Map({
                 container: 'map',
                 style: 'mapbox://styles/mapbox/streets-v12',
-                center: [-46.6333, -23.5505], // São Paulo
+                center: [-46.6333, -23.5505], 
                 zoom: 11
             });
 
-            // Se o mapa carregar com sucesso, atualiza o topo
             map.on('load', () => {
                 document.getElementById('status').innerText = "MAPA CARREGADO COM SUCESSO!";
                 document.getElementById('status').style.backgroundColor = "green";
             });
 
-            // Se o Mapbox rejeitar o token por erro de digitação
             map.on('error', (e) => {
-                document.getElementById('status').innerText = "ERRO DO MAPBOX: Seu token é inválido ou foi copiado errado.";
+                document.getElementById('status').innerText = "ERRO DO MAPBOX: Token inválido.";
                 document.getElementById('status').style.backgroundColor = "orange";
-                console.error(e);
             });
 
         } catch (error) {
-            document.getElementById('status').innerText = "ERRO CRÍTICO no código do mapa.";
+            document.getElementById('status').innerText = "ERRO CRÍTICO no código.";
             document.getElementById('status').style.backgroundColor = "darkred";
         }
     }
