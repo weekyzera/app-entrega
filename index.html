@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>Meu App de Entregas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Scripts do Mapbox -->
+    <script src="https://mapbox.com"></script>
+    <link href="https://mapbox.com" rel="stylesheet" />
+    
+    <style>
+        body { margin: 0; padding: 0; font-family: sans-serif; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        #installBtn { position: absolute; top: 10px; left: 10px; z-index: 1; padding: 12px; background: #ff0000; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: none; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+<button id="installBtn">Instalar App do Restaurante</button>
+<div id="map"></div>
+
+<script>
+    // Configuração do Mapbox - COLOQUE SEU TOKEN ABAIXO
+    mapboxgl.accessToken = 'pk.eyJ1Ijoiam9hb3ppbm5uMDIxNyIsImEiOiJjbWdiaHp3cmoxNW12MmxwenhuM2RjeHNmIn0.FSX876QL9sE2PyeHKWtn6g';
+    
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [-46.633308, -23.550520], // Ponto inicial (São Paulo)
+        zoom: 13
+    });
+
+    // Registrar o PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then(() => console.log('PWA ativo'))
+            .catch((err) => console.log('Erro PWA:', err));
+    }
+
+    // Botão de instalação
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = 'block';
+    });
+
+    installBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                installBtn.style.display = 'none';
+            }
+            deferredPrompt = null;
+        }
+    });
+</script>
+
+</body>
+</html>
