@@ -5,25 +5,23 @@
     <title>Painel Administrativo - Delivery</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- Scripts e Estilos Oficiais do Mapbox -->
-    <!-- Links Atualizados do Mapbox -->
+    <!-- Scripts Oficiais do Mapbox GL JS v3 -->
     <script src="https://mapbox.com"></script>
     <link href="https://mapbox.com" rel="stylesheet" />
-
     
     <style>
         body { margin: 0; padding: 0; font-family: sans-serif; background-color: #121212; color: white; }
         .screen { display: none; padding: 20px; box-sizing: border-box; position: absolute; top: 0; bottom: 0; width: 100%; overflow: auto; }
         .active { display: block; }
         
-        /* Estilos do Formulario de Login e Cadastro */
+        /* Estilos do Formulario de Login */
         .login-container { display: flex; flex-direction: column; justify-content: center; height: 85vh; max-width: 400px; margin: 0 auto; }
         h2, h3 { text-align: center; color: #ff4500; margin-bottom: 25px; margin-top: 0; }
         input { padding: 15px; margin-bottom: 15px; border: 1px solid #333; border-radius: 8px; background: #222; color: white; font-size: 16px; }
         button { padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
         .btn-primary { background-color: #ff4500; color: white; }
         
-        /* Layout de Duas Colunas no Computador */
+        /* Layout do Painel Administrativo */
         .grid-painel { display: grid; grid-template-columns: 350px 1fr; position: absolute; top: 60px; bottom: 0; width: 100%; }
         .sidebar { background: #1e1e1e; padding: 20px; overflow-y: auto; border-right: 1px solid #333; }
         #map { width: 100%; height: 100%; background-color: #222; }
@@ -51,7 +49,7 @@
         </div>
         
         <div class="grid-painel">
-            <!-- Barra Lateral Esquerda: Lançador de Pedidos -->
+            <!-- Lançador de Pedidos na Planilha -->
             <div class="sidebar">
                 <h3>Novo Pedido iFood/Balcão</h3>
                 <div style="display: flex; flex-direction: column;">
@@ -64,21 +62,30 @@
                 <p id="txtLog" style="font-size: 14px; color: #aaa; margin: 0;">Sistema pronto para receber pedidos.</p>
             </div>
             
-            <!-- Lado Direito: O Mapa do Mapbox -->
+            <!-- Area do Mapa -->
             <div id="map"></div>
         </div>
     </div>
 
 <script>
-    // Configurações Globais
-    mapboxgl.accessToken = 'pk.eyJ1Ijoiam9hb3ppbm5uMDIxNyIsImEiOiJjbXJ2MHNsaTIwMmxkMnpvcGF2bHU1cDZhIn0.Nwl43ZxMQImiv9eA5aCwDw';
-    
-    // Link da sua API do Google Apps Script
-    const URL_GOOGLE_API = "https://google.com";
-
-    let map;
+    // 1. AS CREDENCIAIS VEM NO TOPO PARA EVITAR ERROS DE INICIALIZAÇÃO
     const USUARIO_CORRETO = "admin";
     const SENHA_CORRETA = "12345";
+    const URL_GOOGLE_API = "https://google.com";
+    
+    let map;
+
+    // 2. FUNÇÃO DE LOGIN ADAPTADA
+    function realizarLoginRestaurante() {
+        const usuarioInput = document.getElementById('loginUsuario').value.trim();
+        const senhaInput = document.getElementById('loginSenha').value.trim();
+        
+        if (usuarioInput === USUARIO_CORRETO && senhaInput === SENHA_CORRETA) {
+            mudarTela('screenRestaurante');
+        } else {
+            alert("Usuário ou Senha incorretos! Use admin e 12345");
+        }
+    }
 
     function mudarTela(idTela) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -88,34 +95,36 @@
         }
     }
 
-    function realizarLoginRestaurante() {
-        const usuario = document.getElementById('loginUsuario').value.trim();
-        const senha = document.getElementById('loginSenha').value.trim();
-        
-        if (usuario === USUARIO_CORRETO && senha === SENHA_CORRETA) {
-            mudarTela('screenRestaurante');
-        } else {
-            alert("Usuário ou Senha incorretos! Use admin e 12345");
-        }
-    }
-
     function fazerLogout() {
         document.getElementById('loginUsuario').value = "";
         document.getElementById('loginSenha').value = "";
         mudarTela('screenLogin');
     }
 
+    // 3. INICIALIZAÇÃO DO MAPA PROTEGIDA CONTRA TRAVAMENTOS
     function inicializarMapa() {
         if (map) return;
-        map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v12',
-            center: [-46.6563, -23.5615], 
-            zoom: 12
-        });
+        
+        // Verifica se a biblioteca do Mapbox foi carregada antes de criar o mapa
+        if (typeof mapboxgl === 'undefined') {
+            alert("Aviso: O navegador não conseguiu baixar os arquivos do Mapbox. O mapa visual não abrirá, mas o envio para a planilha continua funcionando normalmente!");
+            return;
+        }
+
+        try {
+            mapboxgl.accessToken = 'pk.eyJ1Ijoiam9hb3ppbm5uMDIxNyIsImEiOiJjbXJ2MHNsaTIwMmxkMnpvcGF2bHU1cDZhIn0.Nwl43ZxMQImiv9eA5aCwDw';
+            map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/streets-v12',
+                center: [-46.6563, -23.5615], 
+                zoom: 12
+            });
+        } catch (e) {
+            console.error("Erro interno do Mapbox:", e);
+        }
     }
 
-    // Envio para a planilha
+    // Envio para o Google Sheets
     async function enviarPedidoParaPlanilha() {
         const cliente = document.getElementById('pedCliente').value;
         const endereco = document.getElementById('pedEndereco').value;
@@ -128,10 +137,7 @@
         btn.innerText = "Gravando na Planilha...";
         txtLog.innerText = "Enviando dados para o Google Drive...";
 
-        const dadosDoPedido = {
-            cliente: cliente,
-            endereco: endereco
-        };
+        const dadosDoPedido = { cliente, endereco };
 
         try {
             await fetch(URL_GOOGLE_API, {
@@ -144,7 +150,10 @@
             txtLog.innerText = "🟢 Pedido gravado com sucesso no Google Sheets!";
             document.getElementById('pedCliente').value = "";
             document.getElementById('pedEndereco').value = "";
-            geocodificarEColocarNoMapa(cliente, endereco);
+            
+            if (typeof mapboxgl !== 'undefined' && map) {
+                geocodificarEColocarNoMapa(cliente, endereco);
+            }
 
         } catch (erro) {
             txtLog.innerText = "🔴 Erro ao salvar na planilha.";
@@ -157,12 +166,12 @@
 
     async function geocodificarEColocarNoMapa(nomeCliente, enderecoTexto) {
         try {
-            const urlGeocode = `https://mapbox.com{encodeURIComponent(enderecoTexto)}.json?access_token=${mapboxgl.accessToken}&limit=1`;
+            const urlGeocode = `https://mapbox.com{encodeURIComponent(enderecoTexto)}.json?access_token=pk.eyJ1Ijoiam9hb3ppbm5uMDIxNyIsImEiOiJjbXJ2MHNsaTIwMmxkMnpvcGF2bHU1cDZhIn0.Nwl43ZxMQImiv9eA5aCwDw&limit=1`;
             const req = await fetch(urlGeocode);
             const res = await req.json();
 
             if (res.features && res.features.length > 0) {
-                const coordenadas = res.features[0].center; 
+                const coordenadas = res.features.center; 
                 new mapboxgl.Marker({ color: '#ff4500' })
                     .setLngLat(coordenadas)
                     .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<b>${nomeCliente}</b><br>${enderecoTexto}`))
