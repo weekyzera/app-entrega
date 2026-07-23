@@ -2,88 +2,49 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
-    <title>Delivery Inteligente</title>
+    <title>Painel Administrativo - Delivery</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Scripts do Mapbox -->
+    
+    <!-- Scripts e Estilos Oficiais do Mapbox -->
     <script src="https://mapbox.com"></script>
     <link href="https://mapbox.com" rel="stylesheet" />
+    
     <style>
         body { margin: 0; padding: 0; font-family: sans-serif; background-color: #121212; color: white; }
-        .screen { display: none; padding: 20px; box-sizing: border-box; position: absolute; top: 0; bottom: 0; width: 100%; overflow-y: auto; }
+        .screen { display: none; padding: 20px; box-sizing: border-box; position: absolute; top: 0; bottom: 0; width: 100%; overflow: auto; }
         .active { display: block; }
         
-        /* Estilos de Formulario / Login */
-        .login-container { display: flex; flex-direction: column; justify-content: center; height: 80vh; max-width: 400px; margin: 0 auto; }
-        h2 { text-align: center; color: #ff4500; margin-bottom: 30px; }
+        /* Estilos do Formulario de Login */
+        .login-container { display: flex; flex-direction: column; justify-content: center; height: 85vh; max-width: 400px; margin: 0 auto; }
+        h2 { text-align: center; color: #ff4500; margin-bottom: 25px; margin-top: 0; }
         input { padding: 15px; margin-bottom: 15px; border: 1px solid #333; border-radius: 8px; background: #222; color: white; font-size: 16px; }
         button { padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
         .btn-primary { background-color: #ff4500; color: white; }
-        .btn-success { background-color: #2e7d32; color: white; width: 100%; margin-top: 15px; }
-        .btn-link { background: none; color: #aaa; text-decoration: underline; margin-top: 10px; }
         
-        /* Estilos do Painel do Restaurante */
+        /* Estilos do Painel do Mapa */
         #map { position: absolute; top: 60px; bottom: 0; width: 100%; height: calc(100% - 60px); }
         .nav-top { height: 60px; background: #1e1e1e; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-        
-        /* Estilos do App do Motoboy */
-        .card { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid #ff4500; }
-        .status-badge { background: #333; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .logo { font-weight: bold; color: #ff4500; font-size: 18px; }
     </style>
 </head>
 <body>
 
-    <!-- TELA 1: LOGIN POR CPF -->
+    <!-- TELA DE LOGIN DO RESTAURANTE -->
     <div id="screenLogin" class="screen active">
         <div class="login-container">
-            <h2>Delivery - Login</h2>
-            <input type="text" id="loginCpf" placeholder="Digite seu CPF (Apenas números)" maxlength="11">
+            <h2>Acesso ao Painel</h2>
+            <input type="text" id="loginUsuario" placeholder="Usuário ou CPF do Administrador">
             <input type="password" id="loginSenha" placeholder="Digite sua Senha">
-            <button class="btn-primary" onclick="realizarLogin()">Entrar no Sistema</button>
-            <button class="btn-link" onclick="mudarTela('screenCadastro')">Não tem conta? Cadastre-se</button>
-            <button class="btn-link" onclick="entrarComoRestaurante()" style="color: #ff4500; font-weight: bold; margin-top: 30px;">Entrar como Painel do Restaurante</button>
+            <button class="btn-primary" onclick="realizarLoginRestaurante()">Entrar no Painel</button>
         </div>
     </div>
-
-    <!-- TELA 2: CADASTRO DO MOTOBOY -->
-    <div id="screenCadastro" class="screen">
-        <div class="login-container">
-            <h2>Cadastro de Motoboy</h2>
-            <input type="text" id="cadNome" placeholder="Nome Completo">
-            <input type="text" id="cadCpf" placeholder="CPF (Apenas números)" maxlength="11">
-            <input type="password" id="cadSenha" placeholder="Crie uma Senha">
-            <button class="btn-primary" onclick="realizarCadastro()">Concluir Cadastro</button>
-            <button class="btn-link" onclick="mudarTela('screenLogin')">Já tem conta? Faça Login</button>
-        </div>
-    </div>
-
-    <!-- TELA 3: PAINEL DO RESTAURANTE (MAPA) -->
+    <!-- TELA DO PAINEL DE MONITORAMENTO (ABRE APÓS LOGIN) -->
     <div id="screenRestaurante" class="screen" style="padding:0;">
         <div class="nav-top">
-            <span style="font-weight: bold; color: #ff4500;">Painel do Restaurante</span>
-            <button onclick="mudarTela('screenLogin')" style="padding: 5px 10px; font-size: 12px; background: #333; color: white;">Sair</button>
+            <span class="logo">Central de Entregas 🏍️</span>
+            <button onclick="fazerLogout()" style="padding: 8px 15px; font-size: 12px; background: #333; color: white; border-radius: 6px;">Sair / Slogar</button>
         </div>
         <div id="map"></div>
-    </div>
-
-    <!-- TELA 4: APP DO MOTOBOY (ÁREA DE TRABALHO) -->
-    <div id="screenMotoboy" class="screen">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <div>
-                <h3 style="margin:0;" id="txtNomeMotoboy">Olá, Entregador</h3>
-                <span style="font-size:12px; color:#aaa;" id="txtStatusGps">GPS: Desconectado</span>
-            </div>
-            <button onclick="mudarTela('screenLogin')" style="padding: 5px 10px; font-size: 12px; background: #333; color: white; border-radius: 5px;">Sair</button>
-        </div>
-
-        <h4 style="color: #ff4500;">Seu Pedido Atual</h4>
-        <div id="areaPedidoAtual">
-            <p style="color: #aaa;">Nenhum pedido aceito no momento. Aguardando restaurante...</p>
-        </div>
-
-        <h4 style="color: #aaa; margin-top: 30px;">Pedidos Disponíveis na Região</h4>
-        <div id="listaPedidosDisponiveis">
-            <!-- Novos pedidos vão surgir aqui -->
-        </div>
     </div>
 
 <script>
@@ -92,163 +53,68 @@
     
     let map;
     let motoboyMarker;
-    let bancoMotoboys = JSON.parse(localStorage.getItem('bancoMotoboys')) || [];
-    let motoboyLogado = null;
-    let watchGpsId = null;
 
-    // Dados de pedidos simulados
+    // CREDENCIAIS FIXAS DO RESTAURANTE (Você pode alterar o usuário e a senha abaixo se quiser)
+    const USUARIO_CORRETO = "admin";
+    const SENHA_CORRETA = "12345";
+
+    // Dados simulados de pedidos para exibir no mapa
     let bancoPedidos = [
-        { id: 101, cliente: "Carlos Souza", endereco: "Av. Paulista, 1500 - São Paulo", status: "Saiu para Entrega", coordenadas: [-46.6563, -23.5615] },
-        { id: 102, cliente: "Amanda Lima", endereco: "Rua Augusta, 800 - São Paulo", status: "Saiu para Entrega", coordenadas: [-46.6521, -23.5548] }
+        { id: 101, cliente: "Carlos Souza", endereco: "Av. Paulista, 1500 - São Paulo", coordenadas: [-46.6563, -23.5615] },
+        { id: 102, cliente: "Amanda Lima", endereco: "Rua Augusta, 800 - São Paulo", coordenadas: [-46.6521, -23.5548] }
     ];
 
     function mudarTela(idTela) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(idTela).classList.add('active');
         if(idTela === 'screenRestaurante') {
-            setTimeout(inicializarMapa, 200);
+            setTimeout(inicializarMapa, 250);
         }
     }
 
-    // Cadastro e Login por CPF
-    function realizarCadastro() {
-        const nome = document.getElementById('cadNome').value;
-        const cpf = document.getElementById('cadCpf').value;
-        const senha = document.getElementById('cadSenha').value;
+    // Validação de Login do Restaurante
+    function realizarLoginRestaurante() {
+        const usuario = document.getElementById('loginUsuario').value;
+        const senha = document.getElementById('loginSenha').value;
 
-        if(!nome || !cpf || !senha) return alert("Preencha todos os campos!");
+        if (usuario === USUARIO_CORRETO && senha === SENHA_CORRETA) {
+            mudarTela('screenRestaurante');
+        } else {
+            alert("Usuário ou Senha administrativos incorretos!");
+        }
+    }
 
-        bancoMotoboys.push({ nome, cpf, senha, lat: null, lng: null });
-        localStorage.setItem('bancoMotoboys', JSON.stringify(bancoMotoboys));
-        alert("Cadastro realizado com sucesso! Faça o login.");
+    function fazerLogout() {
+        document.getElementById('loginUsuario').value = "";
+        document.getElementById('loginSenha').value = "";
         mudarTela('screenLogin');
     }
 
-    function realizarLogin() {
-        const cpf = document.getElementById('loginCpf').value;
-        const senha = document.getElementById('loginSenha').value;
-
-        const encontrar = bancoMotoboys.find(m => m.cpf === cpf && m.senha === senha);
-        if(encontrar) {
-            motoboyLogado = encontrar;
-            document.getElementById('txtNomeMotoboy').innerText = `Olá, ${encontrar.nome}`;
-            mudarTela('screenMotoboy');
-            ativarRastreamentoGps();
-            renderizarPedidosMotoboy();
-        } else {
-            alert("CPF ou Senha incorretos!");
-        }
-    }
-
-    function entrarComoRestaurante() {
-        mudarTela('screenRestaurante');
-    }
-
-    // Inicialização do Mapa
+    // Inicialização do Mapa do Mapbox
     function inicializarMapa() {
-        if (map) return;
+        if (map) return; // Evita recriar o mapa se ele já existir
+        
         map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v12',
-            center: [-46.6563, -23.5615],
+            center: [-46.6563, -23.5615], // Centralizado em São Paulo
             zoom: 13
         });
 
+        // Adiciona marcadores laranjas para cada pedido cadastrado
         bancoPedidos.forEach(p => {
             new mapboxgl.Marker({ color: '#ff4500' })
                 .setLngLat(p.coordenadas)
-                .setPopup(new mapboxgl.Popup().setHTML(`<b>Pedido #${p.id}</b><br>${p.cliente}<br>${p.status}`))
+                .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<b>Pedido #${p.id}</b><br>Cliente: ${p.cliente}<br>${p.endereco}`))
                 .addTo(map);
         });
 
-        motoboyMarker = new mapboxgl.Marker({ color: '#007bff' }).setLngLat([-46.6563, -23.5615]).addTo(map);
-    }
-
-    function activarRastreamentoGps() {
-        if ('geolocation' in navigator) {
-            document.getElementById('txtStatusGps').innerText = "GPS: Conectando...";
-            watchGpsId = navigator.geolocation.watchPosition((position) => {
-                const lng = position.coords.longitude;
-                const lat = position.coords.latitude;
-                
-                motoboyLogado.lng = lng;
-                motoboyLogado.lat = lat;
-                document.getElementById('txtStatusGps').innerText = "GPS: Ativo em Tempo Real 🟢";
-
-                if(motoboyMarker) {
-                    motoboyMarker.setLngLat([lng, lat]);
-                }
-            }, (err) => {
-                document.getElementById('txtStatusGps').innerText = "GPS: Erro de Permissão 🔴";
-            }, { enableHighAccuracy: true });
-        }
-    }
-
-    function renderizarPedidosMotoboy() {
-        const areaDisponiveis = document.getElementById('listaPedidosDisponiveis');
-        areaDisponiveis.innerHTML = "";
-        
-        bancoPedidos.forEach(p => {
-            if(p.status === "Saiu para Entrega") {
-                areaDisponiveis.innerHTML += `
-                    <div class="card">
-                        <b>Pedido #${p.id} - ${p.cliente}</b>
-                        <p style="font-size: 14px; margin: 5px 0;">${p.endereco}</p>
-                        <button class="btn-success" onclick="aceitarPedido(${p.id})">Aceitar e Ver Rota</button>
-                    </div>
-                `;
-            }
-        });
-    }
-
-    function aceitarPedido(idPedido) {
-        const pedido = bancoPedidos.find(p => p.id === idPedido);
-        pedido.status = "Em Trânsito";
-        
-        document.getElementById('areaPedidoAtual').innerHTML = `
-            <div class="card" style="border-left-color: #2e7d32;">
-                <b>Entregando para: ${pedido.cliente}</b>
-                <p style="font-size: 14px; margin: 5px 0;">Endereço: ${pedido.endereco}</p>
-                <button class="btn-primary" style="background:#d32f2f; width:100%; margin-top:10px;" onclick="finalizarPedido(${pedido.id})">Marcar como Entregue</button>
-            </div>
-        `;
-        renderizarPedidosMotoboy();
-    }
-
-    function finalizarPedido(idPedido) {
-        const pedido = bancoPedidos.find(p => p.id === idPedido);
-        pedido.status = "Entregue";
-        document.getElementById('areaPedidoAtual').innerHTML = `<p style="color: #aaa;">Pedido concluído! Aguardando novo despacho...</p>`;
-        alert("Sucesso! O restaurante já recebeu o aviso de entrega concluída.");
-        renderizarPedidosMotoboy();
-    }
-
-    let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        installBtn.style.display = 'block';
-    });
-
-    installBtn.addEventListener('click', async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                installBtn.style.display = 'none';
-            }
-            deferredPrompt = null;
-        }
-    });
-
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-            .then(() => console.log('PWA configurado'))
-            .catch((err) => console.log('SW offline ready'));
+        // Adiciona um marcador azul fixo de exemplo para simular um motoboy ativo
+        motoboyMarker = new mapboxgl.Marker({ color: '#007bff' })
+            .setLngLat([-46.6540, -23.5580])
+            .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<b>Motoboy Carlos</b><br>Status: Em entrega`))
+            .addTo(map);
     }
 </script>
 </body>
 </html>
-
