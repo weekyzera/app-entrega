@@ -14,55 +14,69 @@
         .screen { display: none; padding: 20px; box-sizing: border-box; position: absolute; top: 0; bottom: 0; width: 100%; overflow: auto; }
         .active { display: block; }
         
-        /* Estilos do Formulario de Login */
+        /* Estilos do Formulario de Login e Cadastro */
         .login-container { display: flex; flex-direction: column; justify-content: center; height: 85vh; max-width: 400px; margin: 0 auto; }
-        h2 { text-align: center; color: #ff4500; margin-bottom: 25px; margin-top: 0; }
+        h2, h3 { text-align: center; color: #ff4500; margin-bottom: 25px; margin-top: 0; }
         input { padding: 15px; margin-bottom: 15px; border: 1px solid #333; border-radius: 8px; background: #222; color: white; font-size: 16px; }
         button { padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
         .btn-primary { background-color: #ff4500; color: white; }
+        .btn-secondary { background-color: #333; color: white; margin-top: 10px; }
         
-        /* Estilos do Painel do Mapa */
-        #map { position: absolute; top: 60px; bottom: 0; width: 100%; height: calc(100% - 60px); }
+        /* Layout de Duas Colunas no Computador */
+        .grid-painel { display: grid; grid-template-columns: 350px 1fr; position: absolute; top: 60px; bottom: 0; width: 100%; }
+        .sidebar { background: #1e1e1e; padding: 20px; overflow-y: auto; border-right: 1px solid #333; }
+        #map { width: 100%; height: 100%; background-color: #222; }
         .nav-top { height: 60px; background: #1e1e1e; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         .logo { font-weight: bold; color: #ff4500; font-size: 18px; }
     </style>
 </head>
 <body>
 
-    <!-- TELA DE LOGIN DO RESTAURANTE -->
+    <!-- TELA 1: LOGIN DO RESTAURANTE -->
     <div id="screenLogin" class="screen active">
         <div class="login-container">
             <h2>Acesso ao Painel</h2>
-            <input type="text" id="loginUsuario" placeholder="Usuário ou CPF do Administrador">
+            <input type="text" id="loginUsuario" placeholder="Usuário do Administrador">
             <input type="password" id="loginSenha" placeholder="Digite sua Senha">
             <button class="btn-primary" onclick="realizarLoginRestaurante()">Entrar no Painel</button>
         </div>
     </div>
-    <!-- TELA DO PAINEL DE MONITORAMENTO (ABRE APÓS LOGIN) -->
+    <!-- TELA 2: PAINEL DE MONITORAMENTO (ABRE APÓS LOGIN) -->
     <div id="screenRestaurante" class="screen" style="padding:0;">
         <div class="nav-top">
             <span class="logo">Central de Entregas 🏍️</span>
-            <button onclick="fazerLogout()" style="padding: 8px 15px; font-size: 12px; background: #333; color: white; border-radius: 6px;">Sair / Slogar</button>
+            <button onclick="fazerLogout()" style="padding: 8px 15px; font-size: 12px; background: #333; color: white; border-radius: 6px;">Sair</button>
         </div>
-        <div id="map"></div>
+        
+        <div class="grid-painel">
+            <!-- Barra Lateral Esquerda: Lançador de Pedidos -->
+            <div class="sidebar">
+                <h3>Novo Pedido iFood/Balcão</h3>
+                <div style="display: flex; flex-direction: column;">
+                    <input type="text" id="pedCliente" placeholder="Nome do Cliente">
+                    <input type="text" id="pedEndereco" placeholder="Endereço (Rua, Número, Cidade)">
+                    <button class="btn-primary" id="btnSalvarPedido" onclick="enviarPedidoParaPlanilha()">Lançar Pedido na Planilha</button>
+                </div>
+                <hr style="border: 0; border-top: 1px solid #333; margin: 25px 0;">
+                <h4 style="color: #ff4500; margin-bottom: 10px;">Status do Sistema</h4>
+                <p id="txtLog" style="font-size: 14px; color: #aaa; margin: 0;">Sistema pronto para receber pedidos.</p>
+            </div>
+            
+            <!-- Lado Direito: O Mapa do Mapbox -->
+            <div id="map"></div>
+        </div>
     </div>
 
 <script>
-    // Token oficial configurado da sua conta do Mapbox
+    // Configurações Globais
     mapboxgl.accessToken = 'pk.eyJ1Ijoiam9hb3ppbm5uMDIxNyIsImEiOiJjbXJ2MHNsaTIwMmxkMnpvcGF2bHU1cDZhIn0.Nwl43ZxMQImiv9eA5aCwDw';
     
-    let map;
-    let motoboyMarker;
+    // LINK DA SUA API DO GOOGLE APPS SCRIPT QUE VOCÊ ACABOU DE GERAR
+    const URL_GOOGLE_API = "https://script.google.com/macros/s/AKfycbzrVKjQYk0aowMBEKIUugdofsya793AdIig9Cbhs8HveJgWkpmDS-Tg_TATop3JaXfAwg/exec";
 
-    // CREDENCIAIS FIXAS DO RESTAURANTE (Você pode alterar o usuário e a senha abaixo se quiser)
+    let map;
     const USUARIO_CORRETO = "admin";
     const SENHA_CORRETA = "12345";
-
-    // Dados simulados de pedidos para exibir no mapa
-    let bancoPedidos = [
-        { id: 101, cliente: "Carlos Souza", endereco: "Av. Paulista, 1500 - São Paulo", coordenadas: [-46.6563, -23.5615] },
-        { id: 102, cliente: "Amanda Lima", endereco: "Rua Augusta, 800 - São Paulo", coordenadas: [-46.6521, -23.5548] }
-    ];
 
     function mudarTela(idTela) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -72,15 +86,13 @@
         }
     }
 
-    // Validação de Login do Restaurante
     function realizarLoginRestaurante() {
         const usuario = document.getElementById('loginUsuario').value;
         const senha = document.getElementById('loginSenha').value;
-
         if (usuario === USUARIO_CORRETO && senha === SENHA_CORRETA) {
             mudarTela('screenRestaurante');
         } else {
-            alert("Usuário ou Senha administrativos incorretos!");
+            alert("Usuário ou Senha incorretos!");
         }
     }
 
@@ -90,30 +102,85 @@
         mudarTela('screenLogin');
     }
 
-    // Inicialização do Mapa do Mapbox
     function inicializarMapa() {
-        if (map) return; // Evita recriar o mapa se ele já existir
-        
+        if (map) return;
         map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v12',
-            center: [-46.6563, -23.5615], // Centralizado em São Paulo
-            zoom: 13
+            center: [-46.6563, -23.5615], // Centralizado por padrão na Av Paulista
+            zoom: 12
         });
+    }
 
-        // Adiciona marcadores laranjas para cada pedido cadastrado
-        bancoPedidos.forEach(p => {
-            new mapboxgl.Marker({ color: '#ff4500' })
-                .setLngLat(p.coordenadas)
-                .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<b>Pedido #${p.id}</b><br>Cliente: ${p.cliente}<br>${p.endereco}`))
-                .addTo(map);
-        });
+    // ENVIO REAL DE DADOS PARA A SUA PLANILHA DO GOOGLE
+    async function enviarPedidoParaPlanilha() {
+        const cliente = document.getElementById('pedCliente').value;
+        const endereco = document.getElementById('pedEndereco').value;
+        const btn = document.getElementById('btnSalvarPedido');
+        const txtLog = document.getElementById('txtLog');
 
-        // Adiciona um marcador azul fixo de exemplo para simular um motoboy ativo
-        motoboyMarker = new mapboxgl.Marker({ color: '#007bff' })
-            .setLngLat([-46.6540, -23.5580])
-            .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<b>Motoboy Carlos</b><br>Status: Em entrega`))
-            .addTo(map);
+        if (!cliente || !endereco) return alert("Preencha o nome do cliente e o endereço!");
+
+        // Trava o botão para não clicar duas vezes por engano
+        btn.disabled = true;
+        btn.innerText = "Gravando na Planilha...";
+        txtLog.innerText = "Enviando dados para o Google Drive...";
+
+        const dadosDoPedido = {
+            cliente: cliente,
+            endereco: endereco
+        };
+
+        try {
+            // Faz o disparo do site para o seu link do Google Script
+            const resposta = await fetch(URL_GOOGLE_API, {
+                method: "POST",
+                mode: "no-cors", // Necessário para burlar bloqueios de segurança do Google
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dadosDoPedido)
+            });
+
+            // Como usamos "no-cors", o navegador não lê a resposta de texto, mas grava com sucesso!
+            txtLog.innerText = "🟢 Pedido gravado com sucesso no Google Sheets!";
+            
+            // Limpa o formulário para o próximo pedido
+            document.getElementById('pedCliente').value = "";
+            document.getElementById('pedEndereco').value = "";
+
+            // Cria um pin provisório no mapa usando busca do próprio Mapbox no endereço digitado
+            geocodificarEColocarNoMapa(cliente, endereco);
+
+        } catch (erro) {
+            txtLog.innerText = "🔴 Erro ao salvar na planilha.";
+            console.error(erro);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Lançar Pedido na Planilha";
+        }
+    }
+
+    // Transforma o endereço digitado em um Pin Visual usando a API do Mapbox
+    async function geocodificarEColocarNoMapa(nomeCliente, enderecoTexto) {
+        try {
+            const urlGeocode = `https://mapbox.com{encodeURIComponent(enderecoTexto)}.json?access_token=${mapboxgl.accessToken}&limit=1`;
+            const req = await fetch(urlGeocode);
+            const res = await req.json();
+
+            if (res.features && res.features.length > 0) {
+                const coordenadas = res.features[0].center; // Pega [Longitude, Latitude]
+                
+                // Desenha o marcador laranja do novo pedido no mapa automaticamente
+                new mapboxgl.Marker({ color: '#ff4500' })
+                    .setLngLat(coordenadas)
+                    .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<b>${nomeCliente}</b><br>${enderecoTexto}`))
+                    .addTo(map);
+
+                // Move a câmera para o local do novo pedido
+                map.flyTo({ center: coordenadas, zoom: 14 });
+            }
+        } catch (e) {
+            console.log("Não foi possível renderizar o pin deste endereço no mapa.");
+        }
     }
 </script>
 </body>
