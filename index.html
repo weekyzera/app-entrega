@@ -20,7 +20,6 @@
         input { padding: 15px; margin-bottom: 15px; border: 1px solid #333; border-radius: 8px; background: #222; color: white; font-size: 16px; }
         button { padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
         .btn-primary { background-color: #ff4500; color: white; }
-        .btn-secondary { background-color: #333; color: white; margin-top: 10px; }
         
         /* Layout de Duas Colunas no Computador */
         .grid-painel { display: grid; grid-template-columns: 350px 1fr; position: absolute; top: 60px; bottom: 0; width: 100%; }
@@ -41,6 +40,7 @@
             <button class="btn-primary" onclick="realizarLoginRestaurante()">Entrar no Painel</button>
         </div>
     </div>
+
     <!-- TELA 2: PAINEL DE MONITORAMENTO (ABRE APÓS LOGIN) -->
     <div id="screenRestaurante" class="screen" style="padding:0;">
         <div class="nav-top">
@@ -71,8 +71,8 @@
     // Configurações Globais
     mapboxgl.accessToken = 'pk.eyJ1Ijoiam9hb3ppbm5uMDIxNyIsImEiOiJjbXJ2MHNsaTIwMmxkMnpvcGF2bHU1cDZhIn0.Nwl43ZxMQImiv9eA5aCwDw';
     
-    // LINK DA SUA API DO GOOGLE APPS SCRIPT QUE VOCÊ ACABOU DE GERAR
-    const URL_GOOGLE_API = "https://script.google.com/macros/s/AKfycbzrVKjQYk0aowMBEKIUugdofsya793AdIig9Cbhs8HveJgWkpmDS-Tg_TATop3JaXfAwg/exec";
+    // Link da sua API do Google Apps Script
+    const URL_GOOGLE_API = "https://google.com";
 
     let map;
     const USUARIO_CORRETO = "admin";
@@ -87,12 +87,13 @@
     }
 
     function realizarLoginRestaurante() {
-        const usuario = document.getElementById('loginUsuario').value;
-        const senha = document.getElementById('loginSenha').value;
+        const usuario = document.getElementById('loginUsuario').value.trim();
+        const senha = document.getElementById('loginSenha').value.trim();
+        
         if (usuario === USUARIO_CORRETO && senha === SENHA_CORRETA) {
             mudarTela('screenRestaurante');
         } else {
-            alert("Usuário ou Senha incorretos!");
+            alert("Usuário ou Senha incorretos! Use admin e 12345");
         }
     }
 
@@ -107,12 +108,12 @@
         map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v12',
-            center: [-46.6563, -23.5615], // Centralizado por padrão na Av Paulista
+            center: [-46.6563, -23.5615], 
             zoom: 12
         });
     }
 
-    // ENVIO REAL DE DADOS PARA A SUA PLANILHA DO GOOGLE
+    // Envio para a planilha
     async function enviarPedidoParaPlanilha() {
         const cliente = document.getElementById('pedCliente').value;
         const endereco = document.getElementById('pedEndereco').value;
@@ -121,7 +122,6 @@
 
         if (!cliente || !endereco) return alert("Preencha o nome do cliente e o endereço!");
 
-        // Trava o botão para não clicar duas vezes por engano
         btn.disabled = true;
         btn.innerText = "Gravando na Planilha...";
         txtLog.innerText = "Enviando dados para o Google Drive...";
@@ -132,22 +132,16 @@
         };
 
         try {
-            // Faz o disparo do site para o seu link do Google Script
-            const resposta = await fetch(URL_GOOGLE_API, {
+            await fetch(URL_GOOGLE_API, {
                 method: "POST",
-                mode: "no-cors", // Necessário para burlar bloqueios de segurança do Google
+                mode: "no-cors", 
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(dadosDoPedido)
             });
 
-            // Como usamos "no-cors", o navegador não lê a resposta de texto, mas grava com sucesso!
             txtLog.innerText = "🟢 Pedido gravado com sucesso no Google Sheets!";
-            
-            // Limpa o formulário para o próximo pedido
             document.getElementById('pedCliente').value = "";
             document.getElementById('pedEndereco').value = "";
-
-            // Cria um pin provisório no mapa usando busca do próprio Mapbox no endereço digitado
             geocodificarEColocarNoMapa(cliente, endereco);
 
         } catch (erro) {
@@ -159,7 +153,6 @@
         }
     }
 
-    // Transforma o endereço digitado em um Pin Visual usando a API do Mapbox
     async function geocodificarEColocarNoMapa(nomeCliente, enderecoTexto) {
         try {
             const urlGeocode = `https://mapbox.com{encodeURIComponent(enderecoTexto)}.json?access_token=${mapboxgl.accessToken}&limit=1`;
@@ -167,19 +160,15 @@
             const res = await req.json();
 
             if (res.features && res.features.length > 0) {
-                const coordenadas = res.features[0].center; // Pega [Longitude, Latitude]
-                
-                // Desenha o marcador laranja do novo pedido no mapa automaticamente
+                const coordenadas = res.features[0].center; 
                 new mapboxgl.Marker({ color: '#ff4500' })
                     .setLngLat(coordenadas)
                     .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<b>${nomeCliente}</b><br>${enderecoTexto}`))
                     .addTo(map);
-
-                // Move a câmera para o local do novo pedido
                 map.flyTo({ center: coordenadas, zoom: 14 });
             }
         } catch (e) {
-            console.log("Não foi possível renderizar o pin deste endereço no mapa.");
+            console.log("Erro ao renderizar o pin.");
         }
     }
 </script>
